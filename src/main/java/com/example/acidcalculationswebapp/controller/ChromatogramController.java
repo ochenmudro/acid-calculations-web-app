@@ -2,43 +2,128 @@ package com.example.acidcalculationswebapp.controller;
 
 import com.example.acidcalculationswebapp.AcidCalculationsWebAppApplication;
 import com.example.acidcalculationswebapp.dto.ChromatogramDto;
+import com.example.acidcalculationswebapp.dto.ConcentrationDto;
+import com.example.acidcalculationswebapp.dto.PeakAreaDto;
 import com.example.acidcalculationswebapp.entity.Chromatogram;
-import com.example.acidcalculationswebapp.mapper.ChromatogramMapper;
+import com.example.acidcalculationswebapp.entity.Concentration;
+import com.example.acidcalculationswebapp.entity.PeakArea;
+import com.example.acidcalculationswebapp.service.AcidService;
 import com.example.acidcalculationswebapp.service.ChromatogramService;
+import com.example.acidcalculationswebapp.service.ConcentrationService;
+import com.example.acidcalculationswebapp.service.PeakAreaService;
+import org.apache.commons.math3.stat.regression.SimpleRegression;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import javax.servlet.http.HttpServletRequest;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 
-@RestController
+@Controller
 @RequestMapping("/chromatograms/")
 public class ChromatogramController {
     private static final Logger log = Logger.getLogger(AcidCalculationsWebAppApplication.class.getName());
     private final ChromatogramService chromatogramService;
-    private final ChromatogramMapper chromatogramMapper;
+    private final AcidService acidService;
+    private final ConcentrationService concentrationService;
+    private final PeakAreaService peakAreaService;
+    private Long chromatogramId;
 
-    public ChromatogramController(ChromatogramService chromatogramService, ChromatogramMapper chromatogramMapper) {
+    public ChromatogramController(ChromatogramService chromatogramService, AcidService acidService, ConcentrationService concentrationService, PeakAreaService peakAreaService) {
         this.chromatogramService = chromatogramService;
-        this.chromatogramMapper = chromatogramMapper;
+        this.acidService = acidService;
+        this.concentrationService = concentrationService;
+        this.peakAreaService = peakAreaService;
     }
 
-    @PostMapping
-    public ResponseEntity<ChromatogramDto> createChromatogram(@RequestBody ChromatogramDto chromatogramDto) {
-        ChromatogramDto createdChromatogram = chromatogramService.createChromatogram(chromatogramDto);
-        log.info("Chromatogram is saved");
-        return ResponseEntity.status(HttpStatus.CREATED).body(createdChromatogram);
+    @GetMapping("home")
+    public String showChromatogramsPage(HttpServletRequest request, Model model) {
+        model.addAttribute("acids", acidService.getAllAcids());
+        model.addAttribute("chromatogramDto", new ChromatogramDto());
+        model.addAttribute("concentrations", new ArrayList<Concentration>());
+        model.addAttribute("peakAreas", new ArrayList<PeakArea>());
+        model.addAttribute("request", request);
+        return "chromatograms";
     }
 
-    @GetMapping
-    public ResponseEntity<ChromatogramDto> getChromatogramById(@RequestParam Long id) {
-        ChromatogramDto chromatogramDto = chromatogramService.getChromatogramById(id);
-        if (chromatogramDto == null) {
-            return ResponseEntity.notFound().build();
+    @PostMapping("new/")
+    public String createChromatogram(@ModelAttribute("chromatogramDto") ChromatogramDto chromatogramDto,
+                                     Model model, RedirectAttributes redirectAttributes) {
+        Chromatogram chromatogram = chromatogramService.createChromatogram(chromatogramDto);
+        chromatogramId = chromatogram.getId();
+        List<Double> concentrationValues = new ArrayList<>();
+        chromatogramDto.getConcentrationValues().forEach(concentrationValue -> {
+            concentrationValues.add(concentrationValue);
+            ConcentrationDto concentration = new ConcentrationDto();
+            concentration.setValue(concentrationValue);
+            concentration.setChromatogramId(chromatogram.getId());
+            concentrationService.createConcentration(concentration);
+        });
+        List<Double> peakAreaValues = new ArrayList<>();
+        chromatogramDto.getPeakAreaValues().forEach(peakAreaValue -> {
+            peakAreaValues.add(peakAreaValue);
+            PeakAreaDto peakArea = new PeakAreaDto();
+            peakArea.setValue(peakAreaValue);
+            peakArea.setChromatogramId(chromatogram.getId());
+            peakAreaService.createPeakArea(peakArea);
+        });
+
+        int n = concentrationValues.size();
+        SimpleRegression regression = new SimpleRegression(false);
+        for (int i = 0; i < n; i++) {
+            regression.addData(concentrationValues.get(i), peakAreaValues.get(i));
         }
-        return ResponseEntity.ok(chromatogramDto);
+
+        double coefficient = regression.getSlope();
+
+        List<Double> trendLineValues = new ArrayList<>();
+        concentrationValues.forEach(xValues -> trendLineValues.add(coefficient * xValues));
+
+        chromatogram.setT(coefficient);
+        chromatogramService.updateChromatogram(chromatogram);
+
+        redirectAttributes.addFlashAttribute("chromatogramDto", chromatogramDto);
+        redirectAttributes.addFlashAttribute("concentrationValues", concentrationValues);
+        redirectAttributes.addFlashAttribute("peakAreaValues", peakAreaValues);
+        redirectAttributes.addFlashAttribute("coefficient", coefficient);
+        redirectAttributes.addFlashAttribute("trendLineValues", trendLineValues);
+
+        return "redirect:/chromatograms/chart";
+    }
+
+    @GetMapping("chart")
+    public String showChart(HttpServletRequest request, @ModelAttribute("chromatogram") ChromatogramDto chromatogramDto,
+                            @ModelAttribute("concentrationValues") List<Double> concentrationValues,
+                            @ModelAttribute("peakAreaValues") List<Double> peakAreaValues,
+                            @ModelAttribute("coefficient") Double coefficient,
+                            Model model, RedirectAttributes redirectAttributes) {
+        redirectAttributes.addFlashAttribute("chromatogramDto", chromatogramDto);
+        model.addAttribute("image", "");
+        model.addAttribute("chromatogramDto", chromatogramDto);
+        model.addAttribute("coefficient", coefficient);
+        model.addAttribute("concentrationValues", concentrationValues);
+        model.addAttribute("peakAreaValues", peakAreaValues);
+        model.addAttribute("request", request);
+        return "chart";
+    }
+
+    @PostMapping("saveChartImage")
+    public ResponseEntity<String> saveChartImage(@RequestParam("image") String image) {
+
+        Chromatogram chromatogram = chromatogramService.getChromatogramById(chromatogramId);
+        chromatogram.setChartImage(image);
+        chromatogramService.updateChromatogram(chromatogram);
+        if (Objects.equals(chromatogram.getChartImage(), image)) {
+            return ResponseEntity.ok("Ok");
+        } else {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Not ok");
+        }
     }
 
     @DeleteMapping
@@ -47,11 +132,4 @@ public class ChromatogramController {
         return ResponseEntity.noContent().build();
     }
 
-    @GetMapping("all")
-    public ResponseEntity<List<Chromatogram>> getAllChromatograms() {
-        List<ChromatogramDto> chromatogramDtoList = chromatogramService.getAllChromatograms();
-        List<Chromatogram> chromatogramList = chromatogramDtoList.stream().map(chromatogramMapper::toEntity)
-                .collect(Collectors.toList());
-        return ResponseEntity.ok(chromatogramList);
-    }
 }

@@ -10,7 +10,9 @@ import com.example.acidcalculationswebapp.service.CalculationService;
 import org.springframework.stereotype.Service;
 
 import javax.persistence.EntityNotFoundException;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 @Service
 public class CalculationServiceImpl implements CalculationService {
@@ -28,12 +30,41 @@ public class CalculationServiceImpl implements CalculationService {
     }
 
     @Override
-    public CalculationDto createCalculation(CalculationDto calculationDto) {
+    public Calculation createCalculation(CalculationDto calculationDto) {
         Calculation calculation = calculationMapper.toEntity(calculationDto);
         calculation.setAcid(acidRepository.getById(calculationDto.getAcidId()));
         calculation.setExperiment(experimentRepository.getById(calculationDto.getExperimentId()));
-        Calculation createdCalculation = calculationRepository.save(calculation);
-        return calculationMapper.toDto(createdCalculation);
+        List<Long> acidsId = new ArrayList<>();
+        experimentRepository.findById(calculation.getExperiment().getId()).get().getCalculations()
+                .forEach(calculation1 -> acidsId.add(calculation1.getAcid().getId()));
+        if (acidsId.stream().anyMatch(id -> id.equals(calculation.getAcid().getId()))) {
+            throw new IllegalArgumentException("Запись с такой же кислотой уже существует в этом эксперименте.");
+        }
+        return calculationRepository.save(calculation);
+    }
+
+    @Override
+    public CalculationDto updateCalculation(Calculation calculation) {
+        Calculation existingCalculation = calculationRepository.findById(calculation.getId())
+                .orElseThrow(() -> new EntityNotFoundException("Calculation not found"));
+        if (!Objects.equals(existingCalculation.getAcid().getId(), calculation.getAcid().getId())) {
+            existingCalculation.setAcid(calculation.getAcid());
+        }
+        if (!Objects.equals(existingCalculation.getExperiment().getId(), calculation.getExperiment().getId())) {
+            existingCalculation.setExperiment(calculation.getExperiment());
+        }
+        if (!Objects.equals(existingCalculation.getS(), calculation.getS())) {
+            existingCalculation.setS(calculation.getS());
+        }
+        if (!Objects.equals(existingCalculation.getSSt(), calculation.getSSt())) {
+            existingCalculation.setSSt(calculation.getSSt());
+        }
+        if (!Objects.equals(existingCalculation.getConcentration(), calculation.getConcentration())) {
+            existingCalculation.setConcentration(calculation.getConcentration());
+        }
+
+        Calculation updatedCalculation = calculationRepository.save(existingCalculation);
+        return calculationMapper.toDto(updatedCalculation);
     }
 
     @Override
@@ -49,6 +80,11 @@ public class CalculationServiceImpl implements CalculationService {
     }
 
     @Override
+    public List<Calculation> getAllCalculationsEntities(){
+        return calculationRepository.findAll();
+    }
+
+    @Override
     public void deleteCalculationById(Long id) {
         if (!calculationRepository.existsById(id)) {
             throw new EntityNotFoundException("Calculation with id=" + id + " not found");
@@ -57,8 +93,8 @@ public class CalculationServiceImpl implements CalculationService {
     }
 
     @Override
-    public Calculation getCalculationByParam(Long expId, Long acidId){
-        return calculationRepository.findByAcidIdAndExperimentId(acidId,expId);
+    public Calculation getCalculationByParam(Long expId, Long acidId) {
+        return calculationRepository.findByAcidIdAndExperimentId(acidId, expId);
     }
 
     public double calculateConcentration(Calculation calc) {

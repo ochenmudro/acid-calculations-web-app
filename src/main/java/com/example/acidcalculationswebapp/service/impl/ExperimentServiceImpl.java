@@ -20,12 +20,12 @@ public class ExperimentServiceImpl implements ExperimentService {
         this.experimentMapper = experimentMapper;
     }
 
+    @Override
     public ExperimentDto createExperiment(ExperimentDto experimentDto) {
         Experiment experiment = experimentMapper.toEntity(experimentDto);
         Experiment createdExperiment = experimentRepository.save(experiment);
         return experimentMapper.toDto(createdExperiment);
     }
-
 
     @Override
     public ExperimentDto getExperimentById(Long id) {
@@ -38,6 +38,11 @@ public class ExperimentServiceImpl implements ExperimentService {
     public List<ExperimentDto> getAllExperiments() {
         List<Experiment> experimentList = experimentRepository.findAll();
         return experimentMapper.toDtoList(experimentList);
+    }
+
+    @Override
+    public List<Experiment> getAllExperimentsEntities(){
+        return experimentRepository.findAll();
     }
 
     @Override

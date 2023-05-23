@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<nav th:fragment="navbar" class="navbar container-fluid justify-content-start" data-bs-theme="dark">
+
+    <a class="btn btn-outline-secondary me-2 ms-2"
+        th:classappend="${request.requestURI == '/home' ? 'btn-outline-success btn-lg ' : ''}"
+        th:href="@{/home}">Главная</a>
+    <a class="btn btn-outline-secondary me-2"
+        th:classappend="${request.requestURI == '/calculations/home' ? 'btn-outline-success btn-lg' : ''}"
+        th:href="@{/calculations/home}">Расчёт концентрации</a>
+    <a class="btn btn-outline-secondary me-2"
+        th:classappend="${request.requestURI == '/chromatograms/home' ? 'btn-outline-success btn-lg' : ''}"
+        th:href="@{/chromatograms/home}">Калибровка</a>
+    <a class="btn btn-outline-secondary"
+        th:classappend="${request.requestURI == '/statistic' ? 'btn-outline-success btn-lg' : ''}"
+        th:href="@{/statistic}">Статистика</a>
+    <input type="checkbox" id="dark-mode">
+    <label for="dark-mode" class="switch"></label>
+
+</nav>
+
+</html>

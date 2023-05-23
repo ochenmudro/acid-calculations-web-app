@@ -17,6 +17,7 @@ public class PeakArea {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id", nullable = false)
     private Long id;
 
     @Column(name = "value", nullable = false)

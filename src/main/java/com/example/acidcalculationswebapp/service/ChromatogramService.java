@@ -1,15 +1,18 @@
 package com.example.acidcalculationswebapp.service;
 
 import com.example.acidcalculationswebapp.dto.ChromatogramDto;
+import com.example.acidcalculationswebapp.entity.Chromatogram;
 
 import java.util.List;
 
 public interface ChromatogramService {
-    ChromatogramDto createChromatogram(ChromatogramDto chromatogramDto);
+    Chromatogram createChromatogram(ChromatogramDto chromatogramDto);
 
-    ChromatogramDto getChromatogramById(Long id);
+    Chromatogram getChromatogramById(Long id);
 
-    List<ChromatogramDto> getAllChromatograms();
+    List<Chromatogram> getAllChromatograms();
 
     void deleteChromatogramById(Long id);
+
+    Chromatogram updateChromatogram(Chromatogram chromatogram);
 }

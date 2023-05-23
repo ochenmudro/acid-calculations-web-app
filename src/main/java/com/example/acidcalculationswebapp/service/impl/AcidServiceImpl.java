@@ -8,6 +8,8 @@ import com.example.acidcalculationswebapp.service.AcidService;
 import org.springframework.stereotype.Service;
 
 import javax.persistence.EntityNotFoundException;
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 
 @Service
@@ -20,6 +22,7 @@ public class AcidServiceImpl implements AcidService {
         this.acidMapper = acidMapper;
     }
 
+    @Override
     public AcidDto createAcid(AcidDto acidDto) {
         Acid acid = acidMapper.toEntity(acidDto);
         Acid createdAcid = acidRepository.save(acid);
@@ -47,6 +50,19 @@ public class AcidServiceImpl implements AcidService {
         }
         acidRepository.deleteById(id);
     }
+
+    @Override
+    public List<AcidDto> sortAcidsByName(List<AcidDto> acids) {
+        Comparator<AcidDto> nameComparator = Comparator.comparing(AcidDto::getName, (n1, n2) -> {
+            List<String> order = Arrays.asList("C2", "C3", "изо-C4", "C4", "изо-C5", "C6");
+            int index1 = order.indexOf(n1);
+            int index2 = order.indexOf(n2);
+            return Integer.compare(index1, index2);
+        });
+        acids.sort(nameComparator);
+        return acids;
+    }
+
 
 }
 

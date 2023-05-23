@@ -6,11 +6,15 @@ import com.example.acidcalculationswebapp.entity.Calculation;
 import java.util.List;
 
 public interface CalculationService {
-    CalculationDto createCalculation(CalculationDto calculationDto);
+    Calculation createCalculation(CalculationDto calculationDto);
+
+    CalculationDto updateCalculation(Calculation calculation);
 
     Calculation getCalculationById(Long id);
 
     List<CalculationDto> getAllCalculations();
+
+    List<Calculation> getAllCalculationsEntities();
 
     void deleteCalculationById(Long id);
 

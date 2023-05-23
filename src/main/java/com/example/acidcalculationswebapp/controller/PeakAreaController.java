@@ -20,12 +20,12 @@ public class PeakAreaController {
         this.peakAreaService = peakAreaService;
     }
 
-    @PostMapping
-    public ResponseEntity<PeakAreaDto> createPeakArea(@RequestBody PeakAreaDto peakAreaDto) {
-        PeakAreaDto createdPeakArea = peakAreaService.createPeakArea(peakAreaDto);
-        log.info("Peak Area is saved");
-        return ResponseEntity.status(HttpStatus.CREATED).body(createdPeakArea);
-    }
+//    @PostMapping
+//    public ResponseEntity<PeakAreaDto> createPeakArea(@RequestBody PeakAreaDto peakAreaDto) {
+//        PeakAreaDto createdPeakArea = peakAreaService.createPeakArea(peakAreaDto);
+//        log.info("Peak Area is saved");
+//        return ResponseEntity.status(HttpStatus.CREATED).body(createdPeakArea);
+//    }
 
     @GetMapping
     public ResponseEntity<PeakAreaDto> getPeakAreaById(@RequestParam Long id) {

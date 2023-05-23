@@ -21,12 +21,12 @@ public class ConcentrationController {
         this.concentrationService = concentrationService;
     }
 
-    @PostMapping
-    public ResponseEntity<ConcentrationDto> createConcentration(@RequestBody ConcentrationDto concentrationDto) {
-        ConcentrationDto createdConcentration = concentrationService.createConcentration(concentrationDto);
-        log.info("Concentration is saved");
-        return ResponseEntity.status(HttpStatus.CREATED).body(createdConcentration);
-    }
+//    @PostMapping
+//    public ResponseEntity<ConcentrationDto> createConcentration(@RequestBody ConcentrationDto concentrationDto) {
+//        ConcentrationDto createdConcentration = concentrationService.createConcentration(concentrationDto);
+//        log.info("Concentration is saved");
+//        return ResponseEntity.status(HttpStatus.CREATED).body(createdConcentration);
+//    }
 
     @GetMapping
     public ResponseEntity<ConcentrationDto> getConcentrationById(@RequestParam Long id) {

@@ -3,7 +3,9 @@ package com.example.acidcalculationswebapp.service.impl;
 import com.example.acidcalculationswebapp.dto.PeakAreaDto;
 import com.example.acidcalculationswebapp.entity.PeakArea;
 import com.example.acidcalculationswebapp.mapper.PeakAreaMapper;
+import com.example.acidcalculationswebapp.repository.ChromatogramRepository;
 import com.example.acidcalculationswebapp.repository.PeakAreaRepository;
+import com.example.acidcalculationswebapp.service.ChromatogramService;
 import com.example.acidcalculationswebapp.service.PeakAreaService;
 import org.springframework.stereotype.Service;
 
@@ -14,18 +16,20 @@ import java.util.List;
 public class PeakAreaServiceImpl implements PeakAreaService {
     private final PeakAreaRepository peakAreaRepository;
     private final PeakAreaMapper peakAreaMapper;
+    private final ChromatogramRepository chromatogramRepository;
 
-    public PeakAreaServiceImpl(PeakAreaRepository peakAreaRepository, PeakAreaMapper peakAreaMapper) {
+    public PeakAreaServiceImpl(PeakAreaRepository peakAreaRepository, PeakAreaMapper peakAreaMapper, ChromatogramRepository chromatogramRepository) {
         this.peakAreaRepository = peakAreaRepository;
         this.peakAreaMapper = peakAreaMapper;
+        this.chromatogramRepository = chromatogramRepository;
     }
 
-    public PeakAreaDto createPeakArea(PeakAreaDto peakAreaDto) {
+    @Override
+    public PeakArea createPeakArea(PeakAreaDto peakAreaDto) {
         PeakArea peakArea = peakAreaMapper.toEntity(peakAreaDto);
-        PeakArea createdPeakArea = peakAreaRepository.save(peakArea);
-        return peakAreaMapper.toDto(createdPeakArea);
+        peakArea.setChromatogram(chromatogramRepository.getById(peakAreaDto.getChromatogramId()));
+        return peakAreaRepository.save(peakArea);
     }
-
 
     @Override
     public PeakAreaDto getPeakAreaById(Long id) {
@@ -46,5 +50,10 @@ public class PeakAreaServiceImpl implements PeakAreaService {
             throw new EntityNotFoundException("PeakArea with id=" + id + " not found");
         }
         peakAreaRepository.deleteById(id);
+    }
+
+    @Override
+    public List<PeakArea> getPeakAreasByChromatogram(Long chromatogramId) {
+        return peakAreaRepository.findByChromatogramId(chromatogramId);
     }
 }

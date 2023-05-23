@@ -1,0 +1,78 @@
+.switch {
+    position: sticky;
+    width: 120px;
+    height: 50px;
+    display: block;
+    left: 90%;
+    top: 20px;
+    right: 20px;
+    background: url(day.gif);
+    background-size: cover;
+    background-position: center;
+    border: 5px solid rgba(198, 247, 253, 0.3);
+    border-radius: 100px;
+    cursor: pointer;
+    transition: 1s ease;
+    box-shadow: 0 0 25px rgba(0, 0, 0, 0.2);
+}
+
+.switch::after {
+    content: '';
+    position: absolute;
+    height: 30px;
+    width: 30px;
+    background: #f2f2f2;
+    border-radius: 50%;
+    top: 5px;
+    left: 10px;
+    transition: 0.8s ease;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+}
+
+body {
+    position: absolute;
+    width: 100%;
+    height: 100vh;
+    background-color: #AEC09A;
+    z-index: -1;
+    transition: all 1s ease;
+}
+
+#dark-mode:checked~.switch::after {
+    left: 95px;
+    transform: translateX(-100%);
+    background: #777ba5;
+}
+
+#dark-mode:checked~.switch {
+    background: url(night.gif);
+    background-size: 130%;
+    background-position: center;
+    border: 5px solid rgba(76, 66, 114, 0.538);
+}
+
+body.dark-mode {
+    background-color: #344C11;
+}
+
+#dark-mode {
+    display: none;
+}
+
+.navbar {
+    background-color: #778D45;
+}
+
+.btn-outline-secondary {
+    color: #1A2902;
+    background-color: #AEC670;
+    border: 5px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+}
+
+.btn-outline-success {
+    color: #1A2902;
+    background-color: #aec670;
+    border: 5px;
+    box-shadow: 0 0 10px rgba(2, 110, 11, 0.734);
+}

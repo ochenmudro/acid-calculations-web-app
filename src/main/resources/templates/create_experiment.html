@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.w3.org/1999/xhtml">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Создание эксперимента</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-KK94CHFLLe+nY2dmCWGMq91rCGa5gtU4mk92HdvYe+M/SXH301p5ILy+dN9+nJOZ" crossorigin="anonymous">
+    <link rel="stylesheet" th:href="@{/css/navbar.css}">
+</head>
+
+<body>
+
+    <div th:replace="navbar :: navbar"></div>
+
+    <div class="container my-5">
+        <div class="row">
+            <div class="col-lg-6 mx-auto container justify-content-center card">
+                <h1 class="text-center">Создание нового эксперимента</h1>
+                <div class="card-body">
+                    <form th:action="@{save}" th:object="${experimentDto}" name="experimentDto" method="post">
+                        <div class="form-group">
+                            <label>Название</label>
+                            <input type="text" th:field="*{name}" placeholder="Введите название эксперимента"
+                                class="form-control" />
+                        </div>
+                        <div class="form-group">
+                            <label>Масса стандартной добавки</label>
+                            <input type="number" th:field="*{mSt}" placeholder="Введите m(ст)" class="form-control" />
+                        </div>
+                        <div class="form-group">
+                            <label>Объём пробы</label>
+                            <input type="number" th:field="*{v}" placeholder="Введите V" class="form-control" />
+                        </div>
+                        <div class="box-footer mt-3">
+                            <button type="submit" class="btn btn-outline-primary">Сохранить</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script th:src="@{/js/navbar.js}"></script>
+</body>
+
+</html>
